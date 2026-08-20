@@ -1,0 +1,80 @@
+// Donor Recovery schema
+// Dev default is SQLite for zero-setup. For production, switch provider to
+// "postgresql" and set DATABASE_URL accordingly, then re-run migrations.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Donor {
+  id               String              @id @default(cuid())
+  stripeCustomerId String?             @unique
+  email            String?
+  name             String?
+  phone            String?
+  createdAt        DateTime            @default(now())
+  transactions     FailedTransaction[]
+
+  @@index([email])
+}
+
+model FailedTransaction {
+  id                          String       @id @default(cuid())
+  stripePaymentIntentId       String       @unique
+  stripeCheckoutSessionId     String?
+  donorId                     String
+  donor                       Donor        @relation(fields: [donorId], references: [id])
+  amount                      Int          // smallest currency unit (cents)
+  currency                    String
+  failureCode                 String?
+  failureMessage              String?
+  failedAt                    DateTime
+  // Status: NEW | CONTACTED | RECOVERED | CLOSED
+  status                      String       @default("NEW")
+  recoveredAt                 DateTime?
+  recoveredAmount             Int?
+  recoveredByPaymentIntentId  String?
+  // RecoveryMethod: SAME_INTENT | RECOVERY_LINK | DONOR_MATCH | MANUAL
+  recoveryMethod              String?
+  createdAt                   DateTime     @default(now())
+  updatedAt                   DateTime     @updatedAt
+  contactLogs                 ContactLog[]
+
+  @@index([status])
+  @@index([failedAt])
+  @@index([recoveredAt])
+}
+
+model ContactLog {
+  id            String            @id @default(cuid())
+  transactionId String
+  transaction   FailedTransaction @relation(fields: [transactionId], references: [id])
+  // Method: EMAIL | CALL | TEXT
+  method        String
+  notes         String?
+  createdAt     DateTime          @default(now())
+}
+
+// Stores processed Stripe event IDs so webhook retries never double-count.
+model WebhookEvent {
+  id            String   @id // Stripe event id (evt_...)
+  type          String
+  processedAt   DateTime @default(now())
+}
+
+// One-time magic-link tokens for staff sign-in. Only the hash is stored.
+model LoginToken {
+  id        String    @id @default(cuid())
+  email     String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([email])
+}

@@ -120,6 +120,10 @@ h1 {
   color: var(--ink);
 }
 
+.filters-email input {
+  min-width: 180px;
+}
+
 /* Totals */
 .totals {
   display: grid;
@@ -212,6 +216,51 @@ tr:last-child td {
 .donor-contact {
   font-size: 12px;
   color: var(--slate);
+}
+
+.donor-email-btn {
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+}
+
+.donor-email-btn:hover {
+  color: var(--ink);
+}
+
+.donor-email-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.donor-email-input {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  min-width: 180px;
+  background: var(--card);
+  color: var(--ink);
+}
+
+.donor-email-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.donor-email-error {
+  font-size: 11px;
+  color: var(--clay);
 }
 
 .amount {

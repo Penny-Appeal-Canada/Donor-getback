@@ -6,11 +6,12 @@ import { ActionButtons } from "@/components/ActionButtons";
 import { DateRangePicker } from "@/components/DateRangePicker";
 import { StatusSelect } from "@/components/StatusSelect";
 import { LiveRefresh } from "@/components/LiveRefresh";
+import { DonorEmailEditor } from "@/components/DonorEmailEditor";
 import { verifySession, SESSION_COOKIE } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-type Search = { start?: string; end?: string; status?: string };
+type Search = { start?: string; end?: string; status?: string; email?: string };
 
 export default async function Dashboard({
   searchParams,
@@ -30,11 +31,15 @@ export default async function Dashboard({
   const { totalCents: openValue } = await openTotal(start, end);
 
   const statusFilter = params.status && params.status !== "ALL" ? params.status : undefined;
+  const emailFilter = params.email?.trim() || undefined;
 
   const transactions = await prisma.failedTransaction.findMany({
     where: {
       failedAt: { gte: start, lte: end },
       ...(statusFilter ? { status: statusFilter } : {}),
+      ...(emailFilter
+        ? { donor: { email: { contains: emailFilter, mode: "insensitive" } } }
+        : {}),
     },
     include: { donor: true, contactLogs: { orderBy: { createdAt: "desc" }, take: 1 } },
     orderBy: { failedAt: "desc" },
@@ -54,6 +59,7 @@ export default async function Dashboard({
             start={start.toISOString().slice(0, 10)}
             end={end.toISOString().slice(0, 10)}
             status={params.status ?? "ALL"}
+            email={emailFilter ?? ""}
           />
         </div>
       </header>
@@ -111,10 +117,11 @@ export default async function Dashboard({
               <tr key={tx.id} className={tx.status === "RECOVERED" ? "row--recovered" : ""}>
                 <td>
                   <div className="donor-name">{tx.donor.name ?? "Unknown donor"}</div>
-                  <div className="donor-contact">
-                    {tx.donor.email ?? "no email"}
-                    {tx.donor.phone ? ` · ${tx.donor.phone}` : ""}
-                  </div>
+                  <DonorEmailEditor
+                    transactionId={tx.id}
+                    email={tx.donor.email}
+                    phone={tx.donor.phone}
+                  />
                 </td>
                 <td className="amount">{money(tx.amount, tx.currency)}</td>
                 <td>{shortDate(tx.failedAt)}</td>

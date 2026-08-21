@@ -7,22 +7,27 @@ export function DateRangePicker({
   start,
   end,
   status,
+  email = "",
 }: {
   start: string;
   end: string;
   status: string;
+  email?: string;
 }) {
   const router = useRouter();
   const [s, setS] = useState(start);
   const [e, setE] = useState(end);
   const [st, setSt] = useState(status);
+  const [em, setEm] = useState(email);
 
-  function apply(next: { start?: string; end?: string; status?: string } = {}) {
+  function apply(next: { start?: string; end?: string; status?: string; email?: string } = {}) {
     const params = new URLSearchParams({
       start: next.start ?? s,
       end: next.end ?? e,
       status: next.status ?? st,
     });
+    const emailQ = (next.email ?? em).trim();
+    if (emailQ) params.set("email", emailQ);
     router.push(`/?${params.toString()}`);
   }
 
@@ -65,6 +70,21 @@ export function DateRangePicker({
           <option value="RECOVERED">Recovered</option>
           <option value="CLOSED">Closed</option>
         </select>
+      </label>
+      <label className="filters-email">
+        Email
+        <input
+          type="search"
+          value={em}
+          placeholder="contains…"
+          onChange={(ev) => setEm(ev.target.value)}
+          onKeyDown={(ev) => {
+            if (ev.key === "Enter") {
+              ev.preventDefault();
+              apply({ email: em });
+            }
+          }}
+        />
       </label>
       <button className="btn btn--primary" onClick={() => apply()}>
         Apply

@@ -25,10 +25,13 @@ Any status can also be set directly from the dropdown under each row's status ba
 
 ## Setup
 
+1. Create a free [Neon](https://neon.tech) Postgres database and copy the connection string.
+2. Configure env and push the schema:
+
 ```bash
 npm install
-cp .env.example .env        # fill in your keys
-npx prisma db push          # creates the SQLite dev database
+cp .env.example .env        # fill in your keys, including DATABASE_URL from Neon
+npx prisma db push          # creates tables in Postgres
 npm run dev
 ```
 
@@ -97,8 +100,13 @@ Env vars:
 
 In development, sign-in links are also printed to the server console so you can test without waiting on real email delivery.
 
-## Going to production
+## Going to production (Vercel)
 
-- Switch `prisma/schema.prisma` datasource to `postgresql` and point `DATABASE_URL` at a hosted Postgres (Neon, Supabase, Vercel Postgres), then run `prisma db push` again.
-- Verify a sending domain in Resend so recovery and sign-in emails don't land in spam.
-- CASL note (Canada): a follow-up about a transaction the donor themselves initiated is generally fine, but keep the copy transactional and include your org's contact info. For SMS, Twilio requires a registered sender in Canada.
+1. Add the same env vars in Vercel (see `.env.example`), with:
+   - `DATABASE_URL` = your Neon connection string
+   - `APP_URL` = `https://your-app.vercel.app`
+   - `STRIPE_WEBHOOK_SECRET` = signing secret from a Dashboard webhook pointed at  
+     `https://your-app.vercel.app/api/webhooks/stripe`
+2. Deploy. `postinstall` runs `prisma generate`; run `npx prisma db push` once against Neon if you haven’t already (from your laptop with `DATABASE_URL` set).
+3. Verify a sending domain in Resend so recovery and sign-in emails don't land in spam.
+4. CASL note (Canada): a follow-up about a transaction the donor themselves initiated is generally fine, but keep the copy transactional and include your org's contact info. For SMS, Twilio requires a registered sender in Canada.

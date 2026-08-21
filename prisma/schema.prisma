@@ -1,13 +1,11 @@
-// Donor Recovery schema
-// Dev default is SQLite for zero-setup. For production, switch provider to
-// "postgresql" and set DATABASE_URL accordingly, then re-run migrations.
+// Donor Recovery schema — PostgreSQL (Neon, Vercel Postgres, Supabase, etc.)
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
